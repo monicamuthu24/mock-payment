@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Payment Details (Mock)</title>
+
+  <style>
+    :root{
+      --bg:#eef3f8;
+      --card:#ffffff;
+      --text:#1f2a37;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --blue:#2f7be6;
+      --blue2:#1f6fe0;
+      --chip:#f1f5f9;
+      --shadow: 0 12px 30px rgba(15, 23, 42, 0.10);
+      --success:#16a34a;
+      --successBg:#dcfce7;
+      --danger:#dc2626;
+      --dangerBg:#fee2e2;
+      --font: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      background: radial-gradient(900px 500px at 30% -10%, #dbeafe 0%, rgba(219,234,254,0) 60%),
+                  radial-gradient(900px 500px at 80% 0%, #e0f2fe 0%, rgba(224,242,254,0) 60%),
+                  var(--bg);
+      min-height:100vh;
+      display:grid;
+      place-items:center;
+      padding:22px;
+      color:var(--text);
+    }
+
+    /* phone-like frame */
+    .frame{
+      width:min(380px, 95vw);
+      border-radius:22px;
+      padding:14px;
+      background: rgba(255,255,255,0.35);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.12);
+      backdrop-filter: blur(8px);
+      position:relative;
+    }
+
+    .banner{
+      font-size:12px;
+      color:#6b7280;
+      background:#fff7d6;
+      border:1px solid #fde68a;
+      border-radius:10px;
+      padding:10px 12px;
+      margin-bottom:12px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:50%;
+      background:#f59e0b;
+      box-shadow: 0 0 0 4px rgba(245,158,11,0.20);
+      flex:0 0 auto;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:18px;
+      box-shadow: var(--shadow);
+      overflow:hidden;
+      border: 1px solid rgba(226,232,240,0.8);
+    }
+
+    .card-inner{ padding:18px 18px 14px; }
+
+    .title{
+      font-weight:700;
+      letter-spacing:0.2px;
+      font-size:16px;
+      margin:2px 0 10px;
+    }
+    .title-underline{
+      width:22px;height:3px;border-radius:999px;
+      background:var(--blue);
+      margin-bottom:14px;
+    }
+
+    .row{
+      display:grid;
+      grid-template-columns: 1fr 1.3fr;
+      gap:14px;
+      align-items:center;
+      padding:10px 0;
+    }
+    .label{ font-size:13px; color:var(--muted); }
+
+    .field{
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      align-items:center;
+    }
+
+    .input{
+      width:100%;
+      max-width:210px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      padding:10px 12px;
+      font-size:13px;
+      outline:none;
+      background:#fff;
+      transition: border 120ms ease, box-shadow 120ms ease;
+    }
+    .input:focus{
+      border-color: rgba(47,123,230,0.55);
+      box-shadow: 0 0 0 4px rgba(47,123,230,0.14);
+    }
+
+    .divider{ height:1px; background:var(--line); margin:8px 0 6px; }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      border:1px solid #e2e8f0;
+      background:var(--chip);
+      color:#334155;
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:12px;
+      white-space:nowrap;
+      user-select:none;
+    }
+    .chip .icon{
+      width:18px;height:18px;border-radius:6px;
+      display:grid;place-items:center;
+      background:#e8f2ff;
+      border:1px solid #dbeafe;
+      color:var(--blue2);
+      font-weight:800;
+      font-size:12px;
+      line-height:1;
+    }
+
+    .add-new{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 0 2px;
+    }
+
+    .brandbar{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 18px 12px;
+      color:#64748b;
+      font-size:11px;
+    }
+    .brand-pill{
+      border:1px solid #e5e7eb;
+      border-radius:999px;
+      padding:4px 8px;
+      background:#fff;
+    }
+
+    .paybar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 14px;
+      border-top:1px solid var(--line);
+      background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+    }
+    .pay-left{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+      min-width:0;
+    }
+    .pay-left small{ color:var(--muted); font-size:11px; }
+    .pay-left strong{ font-size:14px; }
+
+    .pay-btn{
+      border:0;
+      border-radius:12px;
+      padding:12px 16px;
+      font-weight:700;
+      color:#fff;
+      cursor:pointer;
+      background: linear-gradient(180deg, #2f7be6 0%, #1f6fe0 100%);
+      box-shadow: 0 10px 18px rgba(47,123,230,0.25);
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      white-space:nowrap;
+      transition: transform 90ms ease, filter 90ms ease, opacity 120ms ease;
+    }
+    .pay-btn:active{ transform: translateY(1px); filter: brightness(0.98); }
+    .pay-btn[disabled]{ opacity:0.6; cursor:not-allowed; }
+
+    .rupee{ font-weight:900; font-size:14px; }
+
+    /* overlay modal */
+    .overlay{
+      position:absolute;
+      inset:0;
+      background: rgba(15, 23, 42, 0.35);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      padding:18px;
+    }
+    .overlay.show{ display:flex; }
+
+    .modal{
+      width:100%;
+      max-width:320px;
+      background:#fff;
+      border-radius:18px;
+      box-shadow: 0 18px 60px rgba(0,0,0,0.22);
+      border:1px solid rgba(226,232,240,0.9);
+      overflow:hidden;
+      transform: translateY(6px);
+      animation: pop 160ms ease-out forwards;
+    }
+    @keyframes pop{ to { transform: translateY(0); } }
+
+    .modal-body{ padding:18px 18px 14px; text-align:center; }
+
+    .icon-wrap{
+      width:56px;height:56px;border-radius:999px;
+      margin: 6px auto 10px;
+      display:grid;place-items:center;
+      border:1px solid rgba(15,23,42,0.08);
+    }
+    .icon-wrap.success{ background: var(--successBg); border-color: rgba(22,163,74,0.25); }
+    .icon-wrap.danger{ background: var(--dangerBg); border-color: rgba(220,38,38,0.25); }
+
+    .svg-icon{ width:28px;height:28px; display:block; }
+
+    .modal h3{ margin:6px 0 6px; font-size:16px; letter-spacing:0.2px; }
+    .modal p{ margin:0; color:var(--muted); font-size:12.5px; line-height:1.35; }
+
+    .modal-meta{
+      margin-top:12px;
+      padding-top:12px;
+      border-top:1px solid var(--line);
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      font-size:12px;
+      color:#334155;
+    }
+    .modal-meta span{
+      color:var(--muted);
+      font-size:11px;
+      display:block;
+      margin-bottom:2px;
+    }
+
+    .modal-actions{
+      padding:12px 14px;
+      display:flex;
+      justify-content:flex-end;
+      gap:10px;
+      border-top:1px solid var(--line);
+      background: #fbfdff;
+    }
+    .btn{
+      border:1px solid #dbeafe;
+      background:#e8f2ff;
+      color:#1f6fe0;
+      border-radius:12px;
+      padding:10px 12px;
+      font-weight:700;
+      cursor:pointer;
+      font-size:13px;
+    }
+    .btn:active{ transform: translateY(1px); }
+    .btn.secondary{
+      border:1px solid #e5e7eb;
+      background:#fff;
+      color:#111827;
+      font-weight:600;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="frame">
+    <div class="banner">
+      <span class="dot"></span>
+      <span><strong>Test Mode</strong> is on. Only test payments can be made for this payment page.</span>
+    </div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="title">Payment Details</div>
+        <div class="title-underline"></div>
+
+        <div class="row">
+          <div class="label">UPI ID</div>
+          <div class="field">
+            <input class="input" id="upiInput" type="text" placeholder="name@bank" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label">Amount</div>
+          <div class="field">
+            <input class="input" id="amountInput" type="number" min="0" step="0.01" placeholder="0.00" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label">Email</div>
+          <div class="field">
+            <input class="input" id="emailInput" type="email" placeholder="" />
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label">Phone</div>
+          <div class="field">
+            <input class="input" id="phoneInput" type="tel" placeholder="" />
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="add-new">
+          <div class="label">Add new</div>
+          <div class="field" style="justify-content:flex-end;">
+            <span class="chip"><span class="icon">A</span> Input field</span>
+            <span class="chip"><span class="icon">₹</span> Price field</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="brandbar">
+        <span class="brand-pill">UPI</span>
+        <span class="brand-pill">VISA</span>
+        <span class="brand-pill">RuPay</span>
+        <span class="brand-pill">Mastercard</span>
+      </div>
+
+      <div class="paybar">
+        <div class="pay-left">
+          <small>Total</small>
+          <strong><span class="rupee">₹</span> <span id="totalText">0.00</span></strong>
+        </div>
+        <button class="pay-btn" type="button" id="payBtn">
+          Pay <span class="rupee">₹</span><span id="btnTotal">0.00</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
+      <div class="modal">
+        <div class="modal-body">
+          <div class="icon-wrap success" id="iconWrap">
+            <svg class="svg-icon" viewBox="0 0 24 24" fill="none" id="resultIcon">
+              <path d="M20 6L9 17l-5-5" stroke="#16a34a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h3 id="resultTitle">Payment completed</h3>
+          <p id="resultMsg">Your payment was processed successfully.</p>
+
+          <div class="modal-meta">
+            <div style="text-align:left; flex:1;">
+              <span>Amount</span>
+              <div><strong>₹ <span id="modalAmount">0.00</span></strong></div>
+            </div>
+            <div style="text-align:right; flex:1;">
+              <span>Transaction ID</span>
+              <div><strong id="txnId">UPI20260001</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn secondary" type="button" id="closeBtn">Close</button>
+          <button class="btn" type="button" id="doneBtn">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /***********************
+     * DYNAMIC CONFIG
+     ***********************/
+    const DEFAULT_API = "https://payment.free.beeceptor.com/api/payment";
+    const AUTO_REDIRECT_MS = 0; // keep 0 since you didn't ask redirect now
+
+    function getParam(name){
+      const u = new URL(window.location.href);
+      return u.searchParams.get(name) || "";
+    }
+    function safeDecode(s){
+      try { return decodeURIComponent(s); } catch { return s; }
+    }
+
+    // ✅ Dynamic API base from query param (optional)
+    const apiBaseRaw = getParam("apiBase");
+    const BEECEPTOR_URL = apiBaseRaw ? safeDecode(apiBaseRaw) : DEFAULT_API;
+
+    /***********************
+     * DOM
+     ***********************/
+    const upiInput    = document.getElementById("upiInput");
+    const amountInput = document.getElementById("amountInput");
+    const emailInput  = document.getElementById("emailInput");
+    const phoneInput  = document.getElementById("phoneInput");
+    const totalText   = document.getElementById("totalText");
+    const btnTotal    = document.getElementById("btnTotal");
+    const payBtn      = document.getElementById("payBtn");
+
+    const overlay     = document.getElementById("overlay");
+    const closeBtn    = document.getElementById("closeBtn");
+    const doneBtn     = document.getElementById("doneBtn");
+
+    const iconWrap    = document.getElementById("iconWrap");
+    const resultIcon  = document.getElementById("resultIcon");
+    const resultTitle = document.getElementById("resultTitle");
+    const resultMsg   = document.getElementById("resultMsg");
+
+    const modalAmount = document.getElementById("modalAmount");
+    const txnId       = document.getElementById("txnId");
+
+    function formatMoney(v){
+      const n = Number(v);
+      if (Number.isFinite(n) && n >= 0) return n.toFixed(2);
+      return "0.00";
+    }
+
+    function updateTotals(){
+      const money = formatMoney(amountInput.value || 0);
+      totalText.textContent = money;
+      btnTotal.textContent = money;
+      payBtn.disabled = Number(money) <= 0;
+      payBtn.innerHTML = `Pay <span class="rupee">₹</span><span id="btnTotal">${money}</span>`;
+    }
+
+    function genTxnFallback(){
+      const d = new Date();
+      const pad = (x)=> String(x).padStart(2,"0");
+      return "UPI" + d.getFullYear()
+        + pad(d.getMonth()+1)
+        + pad(d.getDate())
+        + pad(d.getHours())
+        + pad(d.getMinutes())
+        + pad(d.getSeconds());
+    }
+
+    function setModalSuccess(){
+      iconWrap.classList.remove("danger");
+      iconWrap.classList.add("success");
+      resultIcon.innerHTML = '<path d="M20 6L9 17l-5-5" stroke="#16a34a" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+
+    function setModalFailure(){
+      iconWrap.classList.remove("success");
+      iconWrap.classList.add("danger");
+      resultIcon.innerHTML = '<path d="M18 6L6 18M6 6l12 12" stroke="#dc2626" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+
+    function openModal(){ overlay.classList.add("show"); }
+    function closeModal(){ overlay.classList.remove("show"); }
+
+    async function callBeeceptor(upiid, amount){
+      const url = `${BEECEPTOR_URL}?upiid=${encodeURIComponent(upiid)}&amount=${encodeURIComponent(amount)}`;
+      const res = await fetch(url, { method: "GET" });
+      if (!res.ok) throw new Error("API_FAILED");
+      return res.json();
+    }
+
+    // Init from URL (optional)
+    const initialUpiid = getParam("upiid");
+    const initialAmt   = getParam("amount");
+    const initialEmail = getParam("email");
+    const initialPhone = getParam("phone");
+
+    if (initialUpiid) upiInput.value = initialUpiid;
+    if (initialAmt)   amountInput.value = initialAmt;
+    if (initialEmail) emailInput.value  = initialEmail;
+    if (initialPhone) phoneInput.value  = initialPhone;
+
+    updateTotals();
+
+    amountInput.addEventListener("input", updateTotals);
+
+    payBtn.addEventListener("click", async () => {
+      const upiid = (upiInput.value || "").trim();
+      const amt = Number(amountInput.value || 0);
+
+      if (!upiid){
+        alert("Enter UPI ID");
+        return;
+      }
+      if (!Number.isFinite(amt) || amt <= 0){
+        alert("Enter a valid amount.");
+        return;
+      }
+
+      payBtn.disabled = true;
+      payBtn.textContent = "Processing...";
+
+      try{
+        const data = await callBeeceptor(upiid, amt);
+
+        setModalSuccess();
+        resultTitle.textContent = "Payment completed";
+        resultMsg.textContent   = data.message || "Payment completed successfully";
+        modalAmount.textContent = formatMoney(data.amount ?? amt);
+        txnId.textContent       = data.transactionId || genTxnFallback();
+
+        openModal();
+
+      } catch (e){
+        setModalFailure();
+        resultTitle.textContent = "Payment failed";
+        resultMsg.textContent   = "Mock service not reachable. Please try again.";
+        modalAmount.textContent = formatMoney(amt);
+        txnId.textContent       = genTxnFallback();
+        openModal();
+      } finally{
+        updateTotals();
+      }
+    });
+
+    closeBtn.addEventListener("click", closeModal);
+    doneBtn.addEventListener("click", closeModal);
+
+    overlay.addEventListener("click", (e) => {
+      if (e.target === overlay) closeModal();
+    });
+
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") closeModal();
+    });
+  </script>
+</body>
+</html>
