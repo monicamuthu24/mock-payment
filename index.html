@@ -36,7 +36,6 @@
       color:var(--text);
     }
 
-    /* phone-like frame */
     .frame{
       width:min(380px, 95vw);
       border-radius:22px;
@@ -206,7 +205,6 @@
 
     .rupee{ font-weight:900; font-size:14px; }
 
-    /* overlay modal */
     .overlay{
       position:absolute;
       inset:0;
@@ -361,7 +359,6 @@
       </div>
     </div>
 
-    <!-- Result Modal -->
     <div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="resultTitle">
       <div class="modal">
         <div class="modal-body">
@@ -383,6 +380,10 @@
               <div><strong id="txnId">UPI20260001</strong></div>
             </div>
           </div>
+
+          <p id="redirectHint" style="margin-top:10px;font-size:12px;color:#6b7280;display:none;">
+            Redirecting back...
+          </p>
         </div>
 
         <div class="modal-actions">
@@ -395,11 +396,8 @@
 
   <script>
     /***********************
-     * DYNAMIC CONFIG
+     * HELPERS
      ***********************/
-    const DEFAULT_API = "https://payment.free.beeceptor.com/api/payment";
-    const AUTO_REDIRECT_MS = 0; // keep 0 since you didn't ask redirect now
-
     function getParam(name){
       const u = new URL(window.location.href);
       return u.searchParams.get(name) || "";
@@ -407,8 +405,25 @@
     function safeDecode(s){
       try { return decodeURIComponent(s); } catch { return s; }
     }
+    function formatMoney(v){
+      const n = Number(v);
+      if (Number.isFinite(n) && n >= 0) return n.toFixed(2);
+      return "0.00";
+    }
 
-    // ✅ Dynamic API base from query param (optional)
+    /***********************
+     * CONFIG
+     ***********************/
+    const DEFAULT_API = "https://payment.free.beeceptor.com/api/payment";
+
+    // ✅ returnUrl support
+    const returnUrlRaw = getParam("returnUrl");
+    const RETURN_URL = returnUrlRaw ? safeDecode(returnUrlRaw) : "";
+
+    // ✅ Auto redirect delay (ms). Set 0 to disable auto redirect.
+    const AUTO_REDIRECT_MS = 2000;
+
+    // Optional: API base from query param (kept from your version)
     const apiBaseRaw = getParam("apiBase");
     const BEECEPTOR_URL = apiBaseRaw ? safeDecode(apiBaseRaw) : DEFAULT_API;
 
@@ -420,7 +435,6 @@
     const emailInput  = document.getElementById("emailInput");
     const phoneInput  = document.getElementById("phoneInput");
     const totalText   = document.getElementById("totalText");
-    const btnTotal    = document.getElementById("btnTotal");
     const payBtn      = document.getElementById("payBtn");
 
     const overlay     = document.getElementById("overlay");
@@ -434,17 +448,13 @@
 
     const modalAmount = document.getElementById("modalAmount");
     const txnId       = document.getElementById("txnId");
-
-    function formatMoney(v){
-      const n = Number(v);
-      if (Number.isFinite(n) && n >= 0) return n.toFixed(2);
-      return "0.00";
-    }
+    const redirectHint = document.getElementById("redirectHint");
 
     function updateTotals(){
       const money = formatMoney(amountInput.value || 0);
       totalText.textContent = money;
-      btnTotal.textContent = money;
+
+      // keep your original “Pay ₹xx.xx” look
       payBtn.disabled = Number(money) <= 0;
       payBtn.innerHTML = `Pay <span class="rupee">₹</span><span id="btnTotal">${money}</span>`;
     }
@@ -475,14 +485,26 @@
     function openModal(){ overlay.classList.add("show"); }
     function closeModal(){ overlay.classList.remove("show"); }
 
+    function redirectBack(){
+      if (!RETURN_URL) return false;
+      window.location.href = RETURN_URL;
+      return true;
+    }
+
     async function callBeeceptor(upiid, amount){
-      const url = `${BEECEPTOR_URL}?upiid=${encodeURIComponent(upiid)}&amount=${encodeURIComponent(amount)}`;
+      // Keep your API call but now also send returnUrl (optional for logging)
+      const url =
+        `${BEECEPTOR_URL}?upiid=${encodeURIComponent(upiid)}&amount=${encodeURIComponent(amount)}`
+        + (RETURN_URL ? `&returnUrl=${encodeURIComponent(RETURN_URL)}` : "");
+
       const res = await fetch(url, { method: "GET" });
       if (!res.ok) throw new Error("API_FAILED");
       return res.json();
     }
 
-    // Init from URL (optional)
+    /***********************
+     * INIT FROM URL PARAMS
+     ***********************/
     const initialUpiid = getParam("upiid");
     const initialAmt   = getParam("amount");
     const initialEmail = getParam("email");
@@ -494,9 +516,11 @@
     if (initialPhone) phoneInput.value  = initialPhone;
 
     updateTotals();
-
     amountInput.addEventListener("input", updateTotals);
 
+    /***********************
+     * PAY FLOW
+     ***********************/
     payBtn.addEventListener("click", async () => {
       const upiid = (upiInput.value || "").trim();
       const amt = Number(amountInput.value || 0);
@@ -524,12 +548,22 @@
 
         openModal();
 
+        // ✅ Auto redirect after success (if returnUrl is present)
+        if (RETURN_URL && AUTO_REDIRECT_MS > 0){
+          redirectHint.style.display = "block";
+          setTimeout(() => {
+            redirectBack();
+          }, AUTO_REDIRECT_MS);
+        }
+
       } catch (e){
         setModalFailure();
         resultTitle.textContent = "Payment failed";
         resultMsg.textContent   = "Mock service not reachable. Please try again.";
         modalAmount.textContent = formatMoney(amt);
         txnId.textContent       = genTxnFallback();
+
+        redirectHint.style.display = "none";
         openModal();
       } finally{
         updateTotals();
@@ -537,7 +571,11 @@
     });
 
     closeBtn.addEventListener("click", closeModal);
-    doneBtn.addEventListener("click", closeModal);
+
+    // ✅ Done button redirects immediately if returnUrl exists; otherwise just closes
+    doneBtn.addEventListener("click", () => {
+      if (!redirectBack()) closeModal();
+    });
 
     overlay.addEventListener("click", (e) => {
       if (e.target === overlay) closeModal();
